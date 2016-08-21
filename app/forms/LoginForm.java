@@ -39,8 +39,8 @@ public class LoginForm {
     public List<ValidationError> validate(){
         List<ValidationError> errors = new ArrayList<>();
         User user = User.authenticate(email, password);
-        if(user != null) {
-            errors.add(new ValidationError("message", "Email already exists"));
+        if(user == null) {
+            errors.add(new ValidationError("message", "Invalid Email/Password"));
             errors.add(new ValidationError("error", "true"));
         }
         return errors;

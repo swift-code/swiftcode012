@@ -14,8 +14,8 @@ create table connection_request (
 
 create table profile (
   id                        bigint auto_increment not null,
-  fname                     varchar(255),
-  lname                     varchar(255),
+  first_name                varchar(255),
+  last_name                 varchar(255),
   company                   varchar(255),
   constraint pk_profile primary key (id))
 ;
