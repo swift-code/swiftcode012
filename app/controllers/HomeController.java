@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.Profile;
 import models.User;
+import play.data.DynamicForm;
 import play.data.FormFactory;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -27,7 +28,7 @@ public class HomeController extends Controller {
     @Inject
     FormFactory formFactory;
 
-    public Result getProfile(Long userId){
+    public Result getProfile(Long userId) {
         User user = User.find.byId(userId);
         Profile profile = Profile.find.byId(user.profile.id);
         ObjectNode data = objectMapper.createObjectNode();
@@ -37,8 +38,8 @@ public class HomeController extends Controller {
                 .map(x -> x.receiver.id).collect(Collectors.toList());
         List<JsonNode> suggestions = User.find.all().stream().filter(
                 x -> !connectedUserIds.contains(x.id) &&
-                !connectionRequestsSendUserIDs.contains(x.id) &&
-                !Objects.equals(x.id, userId))
+                        !connectionRequestsSendUserIDs.contains(x.id) &&
+                        !Objects.equals(x.id, userId))
                 .map(x -> {
                     ObjectNode userJson = objectMapper.createObjectNode();
                     userJson.put("email", x.email);
@@ -47,18 +48,18 @@ public class HomeController extends Controller {
                 }).collect(Collectors.toList());
 
         data.set("suggestion", objectMapper.valueToTree(suggestions));
-        data.set("connections",objectMapper.valueToTree(
+        data.set("connections", objectMapper.valueToTree(
                 user.connections.stream()
-                .map(x -> {
-                    User connectedUser = User.find.byId(x.id);
-                    Profile connectedProfile = Profile.find.byId(connectedUser.profile.id);
-                    ObjectNode connectionJson = objectMapper.createObjectNode();
-                    connectionJson.put("email",connectedUser.email);
-                    connectionJson.put("firstName",connectedProfile.firstName);
-                    connectionJson.put("lastName",connectedProfile.lastName);
-                    return connectionJson;
-                }).collect(Collectors.toList())));
-        data.set("ConnectionRequestsReceived",objectMapper.valueToTree(
+                        .map(x -> {
+                            User connectedUser = User.find.byId(x.id);
+                            Profile connectedProfile = Profile.find.byId(connectedUser.profile.id);
+                            ObjectNode connectionJson = objectMapper.createObjectNode();
+                            connectionJson.put("email", connectedUser.email);
+                            connectionJson.put("firstName", connectedProfile.firstName);
+                            connectionJson.put("lastName", connectedProfile.lastName);
+                            return connectionJson;
+                        }).collect(Collectors.toList())));
+        data.set("ConnectionRequestsReceived", objectMapper.valueToTree(
                 user.connectionRequestsReceived.stream()
                         .map(x -> {
                             User requestor = User.find.byId(x.sender.id);
@@ -70,5 +71,15 @@ public class HomeController extends Controller {
                             return requestorJson;
                         }).collect(Collectors.toList())));
         return ok(data);
+    }
+    public Result updateProfile(Long userId) {
+        DynamicForm form = formFactory.form().bindFromRequest();
+        User user = User.find.byId(userId);
+        Profile profile = Profile.find.byId(user.profile.id);
+        profile.company = form.get("company");
+        profile.firstName = form.get("firstName");
+        profile.lastName = form.get("lastName");
+        Profile.db().update(profile);
+        return ok();
     }
 }
