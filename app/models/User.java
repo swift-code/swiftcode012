@@ -22,7 +22,7 @@ public class User extends Model {
     public List<ConnectionRequest> connectionRequestsSent;
 
     @OneToMany(mappedBy = "receiver")
-    public List<ConnectionRequest> connectionRequestsReveived;
+    public List<ConnectionRequest> connectionRequestsReceived;
 
     @OneToOne
     public Profile profile;
